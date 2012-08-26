@@ -73,15 +73,15 @@ newest to oldest.
 All Deft files or notes are simple plain text files where the first
 line contains a title.  As an example, the following directory
 structure generated the screenshot above.
-;;
+
     % ls ~/.deft
     about.txt    browser.txt     directory.txt   operations.txt
     ack.txt      completion.txt  extensions.txt  text-mode.txt
     binding.txt  creation.txt    filtering.txt
-;;
+
     % cat ~/.deft/about.txt
     About
-;;
+
     An Emacs mode for slicing and dicing plain text files.
 
 ![Filtering](http://jblevins.org/projects/deft/filter.png)
