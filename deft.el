@@ -255,9 +255,9 @@
   "Emacs Deft mode."
   :group 'local)
 
-(defcustom deft-directory (expand-file-name "~/.deft/")
+(defcustom deft-directories (list (expand-file-name "~/.deft/"))
   "Deft directory."
-  :type 'directory
+  :type '(list directory)
   :safe 'stringp
   :group 'deft)
 
@@ -320,6 +320,11 @@ entire filter string is interpreted as a single regular expression."
 (defface deft-header-face
   '((t :inherit font-lock-keyword-face :bold t))
   "Face for Deft header."
+  :group 'deft-faces)
+
+(defface deft-directory-face
+  '((t :inherit font-lock-keyword-face :underline t))
+  "Face for a directory."
   :group 'deft-faces)
 
 (defface deft-filter-string-face
@@ -560,6 +565,14 @@ title."
          (propertize "Deft" 'face 'deft-header-face)))
   (widget-insert "\n\n"))
 
+(defun deft-buffer-files-setup ()
+  "Render the directories and files in the *Deft* buffer."
+  (if (null deft-directories))
+      (widget-insert (deft-no-directory-message))
+    (if deft-current-files
+        (mapc 'deft-directory-or-files-widget deft-current-files)
+      (widget-insert (deft-no-files-message))))
+
 (defun deft-buffer-setup ()
   "Render the file browser in the *Deft* buffer."
   (setq deft-window-width (window-width))
@@ -569,17 +582,26 @@ title."
   (deft-print-header)
 
   ;; Print the files list
-  (if (not (file-exists-p deft-directory))
-      (widget-insert (deft-no-directory-message))
-    (if deft-current-files
-        (progn
-          (mapc 'deft-file-widget deft-current-files))
-      (widget-insert (deft-no-files-message))))
+  (deft-buffer-files-setup)
 
   (use-local-map deft-mode-map)
   (widget-setup)
   (goto-char 1)
   (forward-line 2))
+
+(defun deft-directory-or-files-widget (dir-or-files)
+  "Call either to `deft-directory-widget' or `deft-file-widget' (for each file) depending on the input argument. If a string, the name of a directory is assumed. If a list, a list of files inside a directory is assumed."
+  (if (listp dir-or-files)
+   ;; lists, even empty, are assumed to be a list of files
+      (mapc 'deft-file-widget dir-or-files)
+    ;; if not a list, a directory is assumed
+    (deft-directory-widget dir-or-files)))
+
+(defun deft-directory-widget (directory)
+  "Add a line to the file browser for the given DIRECTORY."
+  (widget-insert (propertize deft-directory 'face 'deft-directory-face))
+  (widget-insert ":\n")
+)
 
 (defun deft-file-widget (file)
   "Add a line to the file browser for the given FILE."
