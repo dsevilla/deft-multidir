@@ -441,19 +441,22 @@ is non-nil and `re-search-forward' otherwise."
   file)
 
 (defun deft-find-all-files ()
-  "Return a list of all files in the Deft directory."
-  (if (file-exists-p deft-directory)
-      (let (files result)
-        ;; List all files
-        (setq files
-              (directory-files deft-directory t
-                               (concat "\." deft-extension "$") t))
-        ;; Filter out files that are not readable or are directories
-        (dolist (file files)
-          (when (and (file-readable-p file)
-                     (not (file-directory-p file)))
-            (setq result (cons file result))))
-        result)))
+  "Return a list of all files in all the directories specified in
+`deft-directories'."
+  (let (result)
+    (dolist (dir deft-directories)
+      (when (file-exists-p dir)
+        (let (files)
+          ;; List all files
+          (setq files
+                (directory-files dir t
+                                 (concat "\." deft-extension "$") t))
+          ;; Filter out files that are not readable or are directories
+          (dolist (file files)
+            (when (and (file-readable-p file)
+                       (not (file-directory-p file)))
+              (setq result (cons file result))))
+          result)))))
 
 (defun deft-strip-title (title)
   "Remove all strings matching `deft-strip-title-regex' from TITLE."
@@ -590,7 +593,10 @@ title."
   (forward-line 2))
 
 (defun deft-directory-or-files-widget (dir-or-files)
-  "Call either to `deft-directory-widget' or `deft-file-widget' (for each file) depending on the input argument. If a string, the name of a directory is assumed. If a list, a list of files inside a directory is assumed."
+  "Call either to `deft-directory-widget' or `deft-file-widget'
+(for each file) depending on the input argument. If a string, the
+name of a directory is assumed. If a list, a list of files inside
+a directory is assumed."
   (if (listp dir-or-files)
    ;; lists, even empty, are assumed to be a list of files
       (mapc 'deft-file-widget dir-or-files)
@@ -600,8 +606,7 @@ title."
 (defun deft-directory-widget (directory)
   "Add a line to the file browser for the given DIRECTORY."
   (widget-insert (propertize deft-directory 'face 'deft-directory-face))
-  (widget-insert ":\n")
-)
+  (widget-insert ":\n"))
 
 (defun deft-file-widget (file)
   "Add a line to the file browser for the given FILE."
