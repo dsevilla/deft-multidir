@@ -442,11 +442,11 @@ is non-nil and `re-search-forward' otherwise."
 
 (defun deft-find-all-files ()
   "Return a list of all files in all the directories specified in
-`deft-directories'."
+`deft-directories'. The list is in the form (dir file-list ...)."
   (let (result)
     (dolist (dir deft-directories)
       (when (file-exists-p dir)
-        (let (files)
+        (let (files dir-result)
           ;; List all files
           (setq files
                 (directory-files dir t
@@ -455,8 +455,11 @@ is non-nil and `re-search-forward' otherwise."
           (dolist (file files)
             (when (and (file-readable-p file)
                        (not (file-directory-p file)))
-              (setq result (cons file result))))
-          result)))))
+              (setq dir-result (cons file dir-result))))
+          ;; If the directory contains files, add it to the results
+          (when dir-result
+            (setq result (cons dir (cons dir-result result)))))))
+          result))
 
 (defun deft-strip-title (title)
   "Remove all strings matching `deft-strip-title-regex' from TITLE."
