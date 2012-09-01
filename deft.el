@@ -608,7 +608,7 @@ a directory is assumed."
 
 (defun deft-directory-widget (directory)
   "Add a line to the file browser for the given DIRECTORY."
-  (widget-insert (propertize deft-directory 'face 'deft-directory-face))
+  (widget-insert (propertize directory 'face 'deft-directory-face))
   (widget-insert ":\n"))
 
 (defun deft-file-widget (file)
@@ -675,7 +675,7 @@ Call this function after any actions which update the filter and file list."
 
 (defun deft-no-directory-message ()
   "Return a short message to display when the Deft directory does not exist."
-  (concat "Directory " deft-directory " does not exist.\n"))
+  "No directories specified in `deft-directories'.\n")
 
 (defun deft-no-files-message ()
   "Return a short message to display if no files are found."
@@ -701,12 +701,12 @@ Call this function after any actions which update the filter and file list."
   (interactive "F")
   (deft-open-file file))
 
-(defun deft-new-file-named (file)
-  "Create a new file named FILE (or interactively prompt for a filename).
-If the filter string is non-nil and title is not from file name,
-use it as the title."
-  (interactive "sNew filename (without extension): ")
-  (setq file (concat (file-name-as-directory deft-directory)
+(defun deft-new-file-named (dir file)
+  "Create a new file named FILE (or interactively prompt for a filename)
+in the DIR directory. If the filter string is non-nil and title is not
+from file name, use it as the title."
+  (interactive "DDirectory: \nsNew filename (without extension): ")
+  (setq file (concat (file-name-as-directory dir)
                      file "." deft-extension))
   (if (file-exists-p file)
       (message (concat "Aborting, file already exists: " file))
