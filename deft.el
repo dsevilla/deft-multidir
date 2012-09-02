@@ -719,23 +719,29 @@ from file name, use it as the title."
   "Create a new file quickly, with an automatically generated filename
 or the filter string if non-nil and deft-use-filename-as-title is set.
 If the filter string is non-nil and title is not from filename,
-use it as the title."
+use it as the title. If the cursor is over a widget with a file name,
+use that file's directory as the base directory to create the file. If not,
+use the first directory in `deft-directories'."
   (interactive)
-  (let (filename)
+  (let* ((file-at-pos (widget-get (widget-at) :tag))
+         (directory (if file-at-pos
+                        (file-name-nondirectory file-at-pos)
+                      (car deft-directories)))
+         filename)
     (if (and deft-use-filename-as-title deft-filter-regexp)
-	(setq filename (concat (file-name-as-directory deft-directory) (deft-whole-filter-regexp) "." deft-extension))
+        (setq filename (concat (file-name-as-directory directory) (deft-whole-filter-regexp) "." deft-extension))
       (let (fmt counter temp-buffer)
-	(setq counter 0)
-	(setq fmt (concat "deft-%d." deft-extension))
-	(setq filename (concat (file-name-as-directory deft-directory)
-			       (format fmt counter)))
-	(while (or (file-exists-p filename)
-		   (get-file-buffer filename))
-	  (setq counter (1+ counter))
-	  (setq filename (concat (file-name-as-directory deft-directory)
-				 (format fmt counter))))
-	(when deft-filter-regexp
-	  (write-region (concat (deft-whole-filter-regexp) "\n\n") nil filename nil))))
+        (setq counter 0)
+        (setq fmt (concat "deft-%d." deft-extension))
+        (setq filename (concat (file-name-as-directory directory)
+                               (format fmt counter)))
+        (while (or (file-exists-p filename)
+                   (get-file-buffer filename))
+          (setq counter (1+ counter))
+          (setq filename (concat (file-name-as-directory directory)
+                                 (format fmt counter))))
+        (when deft-filter-regexp
+          (write-region (concat (deft-whole-filter-regexp) "\n\n") nil filename nil))))
     (deft-open-file filename)
     (with-current-buffer (get-file-buffer filename)
       (goto-char (point-max)))))
@@ -758,14 +764,14 @@ proceeding."
   "Rename the file represented by the widget at the point.
 If the point is not on a file widget, do nothing."
   (interactive)
-  (let (old-filename new-filename old-name new-name)
-    (setq old-filename (widget-get (widget-at) :tag))
+  (let ((old-filename (widget-get (widget-at) :tag))
+        new-filename old-name new-name)
     (when old-filename
       (setq old-name (deft-base-filename old-filename))
       (setq new-name (read-string
                       (concat "Rename " old-name " to (without extension): ")))
       (setq new-filename
-            (concat (file-name-as-directory deft-directory)
+            (concat (file-name-directory old-filename)
                     new-name "." deft-extension))
       (rename-file old-filename new-filename)
       (deft-refresh))))
@@ -907,8 +913,9 @@ Otherwise, quick create a new file."
 (defun deft-setup ()
   "Prepare environment by creating the Deft notes directory."
   (interactive)
-  (when (not (file-exists-p deft-directory))
-    (make-directory deft-directory t))
+  (dolist (dir deft-directories)
+    (when (not (file-exists-p dir))
+      (make-directory dir t)))
   (deft-refresh))
 
 (defvar deft-mode-map
