@@ -534,7 +534,9 @@ title."
 (defun deft-cache-update-all ()
   "Update file list and update cached information for each file."
   (setq deft-all-files (deft-find-all-files))             ; List all files
-  (mapc 'deft-cache-file deft-all-files)                  ; Cache contents
+  (dolist (dir-or-files deft-all-files)
+    (when (listp dir-or-files)
+      (mapc 'deft-cache-file dir-or-files)))              ; Cache contents
   (setq deft-all-files (deft-sort-files deft-all-files))) ; Sort by mtime
 
 (defun deft-cache-update-file (file)
@@ -576,11 +578,11 @@ title."
 
 (defun deft-buffer-files-setup ()
   "Render the directories and files in the *Deft* buffer."
-  (if (null deft-directories))
+  (if (null deft-directories)
       (widget-insert (deft-no-directory-message))
     (if deft-current-files
         (mapc 'deft-directory-or-files-widget deft-current-files)
-      (widget-insert (deft-no-files-message))))
+      (widget-insert (deft-no-files-message)))))
 
 (defun deft-buffer-setup ()
   "Render the file browser in the *Deft* buffer."
