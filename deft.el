@@ -258,7 +258,10 @@
 (defcustom deft-directories (list (expand-file-name "~/.deft/"))
   "Deft directory."
   :type '(list directory)
-  :safe 'stringp
+  ;; This overly complicated expression is to not to use the cl module
+  :safe (function
+         (lambda (arg)
+           (eq 0 (apply '* (mapcar (lambda (s) (if (stringp s) 1 0)) arg)))))
   :group 'deft)
 
 (defcustom deft-extension "txt"
@@ -966,7 +969,7 @@ Turning on `deft-mode' runs the hook `deft-mode-hook'.
   (kill-all-local-variables)
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  (setq default-directory deft-directory)
+  (setq default-directory (car deft-directories))
   (use-local-map deft-mode-map)
   (deft-cache-initialize)
   (deft-cache-update-all)
