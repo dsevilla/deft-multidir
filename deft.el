@@ -892,6 +892,17 @@ RESET is non-nil, always replace the entire filter string."
 	 (deft-filter nil))
 	(t (deft-filter-clear))))
 
+(defun deft-first-matching-file (file-list)
+  "Gets the first file that matches the filter. As the file list
+is composed as (dir (files) ...), we have to traverse the list
+to find the first list element that is not empty, and return that
+value."
+  (when file-list
+    (let ((elem (car file-list)))
+      (if (and (listp elem) (consp elem))
+          elem
+        (deft-first-matching-file (cdr file-list))))))
+
 (defun deft-complete ()
   "Complete the current action.
 If there is a widget at the point, press it.  If a filter is
@@ -900,16 +911,17 @@ file.  If there is an active filter but there are no matches,
 quick create a new file using the filter string as the title.
 Otherwise, quick create a new file."
   (interactive)
-  (cond
-   ;; Activate widget
-   ((widget-at)
-    (widget-button-press (point)))
-   ;; Active filter string with match
-   ((and deft-filter-regexp deft-current-files)
-    (deft-open-file (car deft-current-files)))
-   ;; Default
-   (t
-    (deft-new-file))))
+  (let (first-match)
+    (cond
+     ;; Activate widget
+     ((widget-at)
+      (widget-button-press (point)))
+     ;; Active filter string with match
+     ((and deft-filter-regexp (setq first-match (deft-first-matching-file)))
+      (deft-open-file first-match))
+     ;; Default
+     (t
+      (deft-new-file)))))
 
 ;;; Automatic File Saving
 
