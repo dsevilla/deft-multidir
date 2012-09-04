@@ -259,9 +259,7 @@
   "Deft directory."
   :type '(list directory)
   ;; This overly complicated expression is to not to use the cl module
-  :safe (function
-         (lambda (arg)
-           (eq 0 (apply '* (mapcar (lambda (s) (if (stringp s) 1 0)) arg)))))
+  :safe (function (lambda (arg) (null (delq t (mapcar 'stringp arg)))))
   :group 'deft)
 
 (defcustom deft-extension "txt"
@@ -785,7 +783,16 @@ If the point is not on a file widget, do nothing."
 
 (defun deft-sort-files (files)
   "Sort FILES in reverse order by modified time."
-  (sort files (lambda (f1 f2) (deft-file-newer-p f1 f2))))
+  (let (r)
+    (while files
+      (if (listp (car files))
+          (setq r (cons
+                   (sort
+                    (car files)
+                    (lambda (f1 f2) (deft-file-newer-p f1 f2)) r)))
+        (setq r (cons (car files) r)))
+      (setq l (cdr l)))
+    (nreverse r)))
 
 (defun deft-filter-initialize ()
   "Initialize the filter string (nil) and files list (all files)."
@@ -797,10 +804,15 @@ If the point is not on a file widget, do nothing."
   "Update the filtered files list using the current filter regexp."
   (if (not deft-filter-regexp)
       (setq deft-current-files deft-all-files)
-    (setq deft-current-files (mapcar (lambda (file)
-				       (deft-filter-match-file file t))
-				     deft-all-files))
-    (setq deft-current-files (delq nil deft-current-files))))
+    (setq deft-current-files
+          (mapcar
+           (lambda (elm)
+             (if (listp elm)
+                 (delq nil
+                       (mapcar (lambda (file)
+                                 (deft-filter-match-file file t)) elm))
+               elm)
+             deft-all-files)))
 
 (defun deft-filter-match-file (file &optional batch)
   "Return FILE if FILE matches the current filter regexp."
@@ -862,8 +874,13 @@ RESET is non-nil, always replace the entire filter string."
 	(if (car deft-filter-regexp)
 	    (setcar deft-filter-regexp (concat (car deft-filter-regexp) char))
 	  (setq deft-filter-regexp (list char)))
-	(setq deft-current-files (mapcar 'deft-filter-match-file deft-current-files))
-	(setq deft-current-files (delq nil deft-current-files))
+        (setq deft-current-files
+              (mapcar
+               (lambda (elm)
+                 (if (listp elm)
+                     (delq nil (mapcar 'deft-filter-match-file elm))
+                   elm)
+                 deft-all-files)))
 	(deft-refresh-browser)))))
 
 (defun deft-filter-decrement ()
