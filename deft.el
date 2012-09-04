@@ -26,6 +26,11 @@
 ;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;; POSSIBILITY OF SUCH DAMAGE.
 
+;;; Version: 0.5
+;;; Author: Diego Sevilla Ruiz <dsevilla@ditec.um.es>
+;;; Keywords: plain text, notes, Simplenote, Notational Velocity
+;;; URL: https://github.com/dsevilla/deft-multidir
+
 ;;; Version: 0.4
 ;;; Author: Jason R. Blevins <jrblevin@sdf.org>
 ;;; Keywords: plain text, notes, Simplenote, Notational Velocity
@@ -596,7 +601,7 @@ title."
   (use-local-map deft-mode-map)
   (widget-setup)
   (goto-char 1)
-  (forward-line 2))
+  (forward-line 3))
 
 (defun deft-directory-or-files-widget (dir-or-files)
   "Call either to `deft-directory-widget' or `deft-file-widget'
@@ -611,6 +616,7 @@ a directory is assumed."
 
 (defun deft-directory-widget (directory)
   "Add a line to the file browser for the given DIRECTORY."
+  (widget-insert "\n")
   (widget-insert (propertize directory 'face 'deft-directory-face))
   (widget-insert ":\n"))
 
@@ -759,8 +765,13 @@ proceeding."
       (when (y-or-n-p
              (concat "Delete file " (file-name-nondirectory filename) "? "))
         (delete-file filename)
-        (delq filename deft-current-files)
-        (delq filename deft-all-files)
+        (flet ((delete-filename (file list)
+                                (mapcar
+                                 (lambda (x)
+                                   (if (listp x) (delq file x) x))
+                                 list)))
+          (setq deft-current-files (delete-filename filename deft-current-files))
+          (setq deft-all-files (delete-filename filename deft-all-files)))
         (deft-refresh)))))
 
 (defun deft-rename-file ()
@@ -789,9 +800,9 @@ If the point is not on a file widget, do nothing."
           (setq r (cons
                    (sort
                     (car files)
-                    (lambda (f1 f2) (deft-file-newer-p f1 f2)) r)))
+                    (lambda (f1 f2) (deft-file-newer-p f1 f2))) r))
         (setq r (cons (car files) r)))
-      (setq l (cdr l)))
+      (setq files (cdr files)))
     (nreverse r)))
 
 (defun deft-filter-initialize ()
@@ -811,8 +822,8 @@ If the point is not on a file widget, do nothing."
                  (delq nil
                        (mapcar (lambda (file)
                                  (deft-filter-match-file file t)) elm))
-               elm)
-             deft-all-files)))
+               elm))
+           deft-all-files))))
 
 (defun deft-filter-match-file (file &optional batch)
   "Return FILE if FILE matches the current filter regexp."
@@ -879,8 +890,8 @@ RESET is non-nil, always replace the entire filter string."
                (lambda (elm)
                  (if (listp elm)
                      (delq nil (mapcar 'deft-filter-match-file elm))
-                   elm)
-                 deft-all-files)))
+                   elm))
+               deft-all-files))
 	(deft-refresh-browser)))))
 
 (defun deft-filter-decrement ()
