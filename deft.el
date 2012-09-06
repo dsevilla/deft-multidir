@@ -450,22 +450,25 @@ is non-nil and `re-search-forward' otherwise."
   "Return a list of all files in all the directories specified in
 `deft-directories'. The list is in the form (dir file-list ...)."
   (let (result)
-    (dolist (dir deft-directories)
-      (when (file-exists-p dir)
-        (let (files dir-result)
+    (mapc
+     (lambda (dir)
+       (when (file-exists-p dir)
+         (let (files dir-result)
           ;; List all files
-          (setq files
-                (directory-files dir t
-                                 (concat "\." deft-extension "$") t))
-          ;; Filter out files that are not readable or are directories
-          (dolist (file files)
-            (when (and (file-readable-p file)
-                       (not (file-directory-p file)))
-              (setq dir-result (cons file dir-result))))
-          ;; If the directory contains files, add it to the results
-          (when dir-result
-            (setq result (cons dir (cons dir-result result)))))))
-          result))
+           (setq files
+                 (directory-files dir t
+                                  (concat "\." deft-extension "$") t))
+           ;; Filter out files that are not readable or are directories
+           (mapc (lambda (file)
+                   (when (and (file-readable-p file)
+                              (not (file-directory-p file)))
+                     (setq dir-result (cons file dir-result))))
+                 files)
+           ;; If the directory contains files, add it to the results
+           (when dir-result
+             (setq result (cons dir (cons dir-result result)))))))
+     deft-directories)
+    result))
 
 (defun deft-strip-title (title)
   "Remove all strings matching `deft-strip-title-regex' from TITLE."
@@ -537,9 +540,10 @@ title."
 (defun deft-cache-update-all ()
   "Update file list and update cached information for each file."
   (setq deft-all-files (deft-find-all-files))             ; List all files
-  (dolist (dir-or-files deft-all-files)
-    (when (listp dir-or-files)
-      (mapc 'deft-cache-file dir-or-files)))              ; Cache contents
+  (mapc (lambda (dir-or-files)
+          (when (listp dir-or-files)
+            (mapc 'deft-cache-file dir-or-files)))
+        deft-all-files)                                   ; Cache contents
   (setq deft-all-files (deft-sort-files deft-all-files))) ; Sort by mtime
 
 (defun deft-cache-update-file (file)
@@ -938,15 +942,17 @@ Otherwise, quick create a new file."
 
 (defun deft-auto-save ()
   (save-excursion
-    (dolist (buf deft-auto-save-buffers)
-      (if (get-buffer buf)
-          ;; Save open buffers that have been modified.
-          (progn
-            (set-buffer buf)
-            (when (buffer-modified-p)
-              (basic-save-buffer)))
-        ;; If a buffer is no longer open, remove it from auto save list.
-        (delq buf deft-auto-save-buffers)))))
+    (mapc
+     (lambda (buf)
+       (if (get-buffer buf)
+           ;; Save open buffers that have been modified.
+           (progn
+             (set-buffer buf)
+             (when (buffer-modified-p)
+               (basic-save-buffer)))
+         ;; If a buffer is no longer open, remove it from auto save list.
+         (delq buf deft-auto-save-buffers)))
+     deft-auto-save-buffers)))
 
 ;;; Mode definition
 
@@ -958,9 +964,11 @@ Otherwise, quick create a new file."
 (defun deft-setup ()
   "Prepare environment by creating the Deft notes directory."
   (interactive)
-  (dolist (dir deft-directories)
-    (when (not (file-exists-p dir))
-      (make-directory dir t)))
+  (mapc
+   (lambda (dir)
+     (when (not (file-exists-p dir))
+       (make-directory dir t)))
+   deft-directories)
   (deft-refresh))
 
 (defvar deft-mode-map
