@@ -5,9 +5,10 @@ Deft mode with multiple directories. This is work adapted from the
 original Deft mode by Jason Blevins:
 [http://jblevins.org/projects/deft/](http://jblevins.org/projects/deft/).
 
-# Original Copyright #
+# Copyright #
 
     Copyright (C) 2011-2012 Jason R. Blevins <jrblevin@sdf.org>
+    Copyright (C) 2012 Diego Sevilla Ruiz <dsevilla@um.es>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -33,13 +34,18 @@ original Deft mode by Jason Blevins:
     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     POSSIBILITY OF SUCH DAMAGE.
 
+    Version: 0.5
+    Author: Diego Sevilla Ruiz <dsevilla@um.es>
+    Keywords: plain text, notes, Simplenote, Notational Velocity
+    URL: https://github.com/dsevilla/deft-multidir
+
     Version: 0.4
     Author: Jason R. Blevins <jrblevin@sdf.org>
     Keywords: plain text, notes, Simplenote, Notational Velocity
     URL: http://jblevins.org/projects/deft/
 
 
-# Original Documentation #
+# Documentation #
 
 Deft is an Emacs mode for quickly browsing, filtering, and editing
 directories of plain text notes, inspired by Notational Velocity.
@@ -55,20 +61,31 @@ directly here:
 
   * [deft.el](http://jblevins.org/projects/deft/deft.el)
 
+Version 0.5, released September 10, 2012, includes multiple
+directory support, and can be downloaded here:
+
+  * [deft.el](https://github.com/dsevilla/deft-multidir/raw/master/deft.el)
+
 To follow or contribute to Deft development, you can either
 [browse](http://jblevins.org/git/deft.git) or clone the Git
 repository:
 
     git clone git://jblevins.org/git/deft.git
 
+Or, on version 0.5, on
+[GitHub](https://github.com/dsevilla/deft-multidir), or clone this
+Git repository:
+
+    git clone https://github.com/dsevilla/deft-multidir.git
+
 ![File Browser](http://jblevins.org/projects/deft/browser.png)
 
 The Deft buffer is simply a file browser which lists the titles of
-all text files in the Deft directory followed by short summaries
-and last modified times.  The title is taken to be the first line
-of the file and the summary is extracted from the text that
-follows.  Files are sorted in terms of the last modified date, from
-newest to oldest.
+all text files in all the Deft specified directories followed by
+short summaries and last modified times.  The title is taken to be
+the first line of the file and the summary is extracted from the
+text that follows.  Files are sorted in terms of the last modified
+date, from newest to oldest.
 
 All Deft files or notes are simple plain text files where the first
 line contains a title.  As an example, the following directory
@@ -162,11 +179,12 @@ both the file extension and the Deft directory by running
 configure them in your `.emacs` file:
 
     (setq deft-extension "txt")
-    (setq deft-directory "~/Dropbox/notes")
+    (setq deft-directories '("~/Dropbox/notes"))
 
-You can also customize the major mode that Deft uses to edit files,
-either through `M-x customize-group` or by adding something like
-the following to your `.emacs` file:
+You can add several directories as a source of note files.  You can
+also customize the major mode that Deft uses to edit files, either
+through `M-x customize-group` or by adding something like the
+following to your `.emacs` file:
 
     (setq deft-text-mode 'markdown-mode)
 
@@ -229,6 +247,12 @@ platforms, such as Linux, via Emacs.
 History
 -------
 
+Version 0.5 (2012-09-10):
+
+* Allow using multiple directories as source of note files.
+* Changed the `deft-directory' variable to `deft-direcories'.
+* Small changes to not to depend on the CL package.
+
 Version 0.4 (2011-12-11):
 
 * Improved filtering performance.
@@ -251,6 +275,3 @@ Version 0.2 (2011-08-22):
 Deft was originally written by Jason Blevins.
 The initial version, 0.1, was released on August 6, 2011.
 
-# Multiple Directories #
-
-TBD
