@@ -788,13 +788,16 @@ proceeding."
       (when (y-or-n-p
              (concat "Delete file " (file-name-nondirectory filename) "? "))
         (delete-file filename)
-        (flet ((delete-filename (file list)
-                                (mapcar
-                                 (lambda (x)
-                                   (if (listp x) (delq file x) x))
-                                 list)))
-          (setq deft-current-files (delete-filename filename deft-current-files))
-          (setq deft-all-files (delete-filename filename deft-all-files)))
+        (let ((delete-filename (function
+                                (lambda (file list)
+                                  (mapcar
+                                   (lambda (x)
+                                     (if (listp x) (delq file x) x))
+                                   list)))))
+          (setq deft-current-files
+                (funcall delete-filename filename deft-current-files))
+          (setq deft-all-files
+                (funcall delete-filename filename deft-all-files)))
         (deft-refresh)))))
 
 (defun deft-rename-file ()
