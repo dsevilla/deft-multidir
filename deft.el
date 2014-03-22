@@ -954,7 +954,7 @@ Otherwise, quick create a new file."
      ((widget-at)
       (widget-button-press (point)))
      ;; Active filter string with match
-     ((and deft-filter-regexp (setq first-match (deft-first-matching-file)))
+     ((and deft-filter-regexp (setq first-match (deft-first-matching-file deft-current-files)))
       (deft-open-file first-match))
      ;; Default
      (t
